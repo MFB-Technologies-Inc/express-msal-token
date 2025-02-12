@@ -1,3 +1,4 @@
+import { isOidProviderMetaMinimal } from "./types.guard.js"
 import { Issuer, JwksUri } from "./types.js"
 
 export async function getAzureOpenIdInfo(args: {
@@ -9,7 +10,14 @@ export async function getAzureOpenIdInfo(args: {
 }> {
   const configUri = constructOpenIdConfigUri(args)
   const response = await fetch(configUri)
-  const rawValue = response.json
+  const oidMeta = await response.json()
+  if (!isOidProviderMetaMinimal(oidMeta)) {
+    throw new Error("Did not receive valid Open ID metadata")
+  }
+  return {
+    jwksUri: oidMeta.jwks_uri as JwksUri,
+    issuer: oidMeta.issuer as Issuer
+  }
 }
 
 function constructOpenIdConfigUri(args: {
