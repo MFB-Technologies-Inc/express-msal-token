@@ -1,3 +1,5 @@
+import { Request as RequestExpress, Response, NextFunction } from "express"
+
 export type JwksUri = string & {
   jwksUriBrand: string
 }
@@ -9,6 +11,18 @@ export type Issuer = string & {
 export type Audience = string & {
   AudienceBrand: string
 }
+
+/**
+ * Request-like type that is satisfied by both Express v4 and Express v5
+ * requests
+ */
+export type RequestLike = Omit<RequestExpress, "param" | "query">
+
+export type MiddlewareWithRequest<T> = (
+  req: T,
+  res: Response,
+  next: NextFunction
+) => Promise<void>
 
 /**
  * Type reflecting properties required by the

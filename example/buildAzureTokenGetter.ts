@@ -1,11 +1,9 @@
-// Copyright 2024 MFB Technologies, Inc.
-
 import {
   PublicClientApplication,
   Configuration,
   InteractiveRequest,
-  AccountInfo,
-  InteractionRequiredAuthError
+  InteractionRequiredAuthError,
+  AuthError
 } from "@azure/msal-node"
 import open from "open"
 
@@ -24,7 +22,6 @@ export function buildAzureTokenGetter(args: {
   }
 
   const pca = new PublicClientApplication(msalConfig)
-  let account: AccountInfo | undefined = undefined
 
   const getToken = async (): Promise<string> => {
     const interactiveRequest: InteractiveRequest = {
@@ -34,6 +31,10 @@ export function buildAzureTokenGetter(args: {
       }
     }
 
+    const accountResult = await pca.getAllAccounts()
+
+    const account = accountResult[0]
+
     if (!account) {
       console.log(
         "No account present. Attempting interactive authentication..."
@@ -42,8 +43,6 @@ export function buildAzureTokenGetter(args: {
       if (!result.account) {
         throw new Error("Unexpectedly did not obtain account information")
       }
-      // eslint-disable-next-line require-atomic-updates
-      account = result.account
       return result.accessToken
     }
 
@@ -54,7 +53,11 @@ export function buildAzureTokenGetter(args: {
       })
       return result.accessToken
     } catch (err) {
-      if (err instanceof InteractionRequiredAuthError) {
+      const isInteractionError = err instanceof InteractionRequiredAuthError
+      const isTokenError =
+        err instanceof AuthError &&
+        ["invalid_grant", "interaction_required"].includes(err.errorCode)
+      if (isInteractionError || isTokenError) {
         console.log(
           `Received error "${err.errorCode}: ${err.errorMessage}". Attempting interactive authentication...`
         )
