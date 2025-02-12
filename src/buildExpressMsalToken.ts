@@ -1,6 +1,8 @@
 import { expressjwt } from "express-jwt"
 import jwksRsa, { GetVerificationKey } from "jwks-rsa"
 
+type TokenVersion = "v1" | "v2" | "both"
+
 /** Generate the uri where a tenant's public keys are stored */
 const tenantPublicKeyUri = (tenantId: string): string =>
   `https://login.microsoftonline.com/${tenantId}/discovery/v2.0/keys`
@@ -23,22 +25,20 @@ const RSA256 = "RS256"
  * given by `appId` on the tenant given by `tenantId`
  */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function buildExpressMsalToken({
-  tenantId,
-  appId
-}: {
-  tenantId: string
+export function buildExpressMsalToken(args: {
+  tenantIdOrDomain: string
   appId: string
+  tokenVersion: TokenVersion
 }) {
   return expressjwt({
     secret: jwksRsa.expressJwtSecret({
-      jwksUri: tenantPublicKeyUri(tenantId),
+      jwksUri: tenantPublicKeyUri(args.tenantId),
       cache: true,
       rateLimit: true,
       jwksRequestsPerMinute: JWKS_REQ_PER_MIN
     }) as GetVerificationKey,
-    issuer: [apiScopeIssuer(tenantId), appServiceIssuer(tenantId)],
-    audience: [apiScopeAudience(appId), appServiceAudience(appId)],
+    issuer: [apiScopeIssuer(args.tenantId), appServiceIssuer(args.tenantId)],
+    audience: [apiScopeAudience(args.appId), appServiceAudience(args.appId)],
     algorithms: [RSA256],
     credentialsRequired: true
   })
