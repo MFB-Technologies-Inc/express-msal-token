@@ -1,3 +1,8 @@
+# tenant id
 TENANT_ID=""
+# id of the cli client app
 CLIENT_ID=""
+# app scope to access the server
 API_SCOPE=""
+# client id of the server app
+API_CLIENT_ID=""

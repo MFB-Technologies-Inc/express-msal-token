@@ -2,7 +2,7 @@ import { Audience } from "./types.js"
 
 export const audienceUtils = {
   /**
-   * In v2 access tokens the `aud` claim is set by default to a URL in
+   * In v1 access tokens the `aud` claim is set by default to a URL in
    * the format api://[client id of the app registration] -- which is
    * what this function generates. But it can actually be set to
    * any URI so there is no way to set it deterministically short of
