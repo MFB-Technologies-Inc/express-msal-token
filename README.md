@@ -4,14 +4,6 @@ Express middleware to validate signature, issuer, and audience of MSAL tokens
 
 WARNING: This app is something of a WIP. It relies on `expressjwt` and `jwks-rsa` for the underlying validation. Those are well tested, popular libraries, so it should be fine from that perspective. However, there is a fair bit of nuance to how MSAL generates tokens and I'm not sure this captures all the various use cases (e.g., multitenant, B2C, etc). Feel free to raise issues with suggestions for improvement.
 
-## Background
-
-https://learn.microsoft.com/en-us/entra/identity-platform/access-tokens
-
-https://github.com/AzureAD/microsoft-identity-web/discussions/2405
-
-https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/6113
-
 ## Quickstart
 
 ```typescript
@@ -30,17 +22,25 @@ app.get("/authorized", expressMsalToken, (req: WithMsalAuth<Request>, res) => {
 
 ### buildExpressMsalToken
 
+```typescript
+async function buildExpressMsalToken(args: {
+  tenantIdOrDomain: string
+  audience: Audience
+  tokenVersion: 1 | 2
+}): Promise<MiddlewareWithRequest<RequestLike>>
+```
+
 This function builds the middleware to decrypt an msal token and validate the issuer and audience. It takes the following parameters:
 
 `tenantIdOrDomain`: Either the tenant id of an Azure tenant or the domain of the tenant.
 
-`audience`: The audience value to validate against the `aud` claim in the token. See this Microsoft documentation for more info on what that should be. https://learn.microsoft.com/en-us/entra/identity-platform/access-token-claims-reference#payload-claims Use the `audienceUtils` tools to generate this as it is a nominally typed value.
+`audience`: The audience value to validate against the `aud` claim in the token. Use the `audienceUtils` tools to generate this as it is a nominally typed value.
 
 `tokenVersion` Either 1 or 2. These are the two version of tokens MSAL will issue. Note that if you setup a registration via the Azure GUI it currently will default to v1.
 
 ### audienceUtils
 
-A collection of utilities to generate the audience value. The audience value is different depending on whether you are using a v1 or v2 token, as explained (here)[https://learn.microsoft.com/en-us/entra/identity-platform/access-token-claims-reference#payload-claims].
+A collection of utilities to generate the audience value. The audience value is different depending on whether you are using a v1 or v2 token, as explained [here](https://learn.microsoft.com/en-us/entra/identity-platform/access-token-claims-reference#payload-claims).
 
 In v1 access tokens the `aud` claim is set by default to a URL in
 the format api://[client id of the app registration] -- which is
@@ -78,3 +78,32 @@ app.get("/", msalTokenMiddleware, (req: WithMsalAuth<Request>, res) => {
 ```
 
 Note, we don't type every possible claim value as these can differ based on variety of things, including v1 vs v2 tokens, optional claims set, MS Graph permissions etc. Commonly used ones are included.
+
+```typescript
+{
+  /** Display name */
+  name?: string
+  /** Unique id of the user */
+  oid?: string
+  /** Allowed scope on the resource/API */
+  scp?: string
+  /** Application roles assigned to user */
+  roles?: string[]
+  /** Unique id for the user in the context of the application (not globally) */
+  sub?: string
+  /** Tenant id */
+  tid?: string
+  /** Version of the access token */
+  ver?: string
+}
+```
+
+## References
+
+https://learn.microsoft.com/en-us/entra/identity-platform/access-tokens
+
+https://learn.microsoft.com/en-us/entra/identity-platform/access-token-claims-reference
+
+https://github.com/AzureAD/microsoft-identity-web/discussions/2405
+
+https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/6113
