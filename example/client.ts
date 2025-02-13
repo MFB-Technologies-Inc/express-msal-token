@@ -19,6 +19,17 @@ const getAuthToken = buildAzureTokenGetter({
 
 const token = await getAuthToken()
 
-const tokenDecoded = decodeJwt(token)
+const badResponse = await fetch("http://localhost:3000/authorized")
 
-console.log(tokenDecoded)
+console.log(badResponse.status)
+
+const authResponse = await fetch("http://localhost:3000/authorized", {
+  method: "GET",
+  headers: {
+    Authorization: `Bearer ${token}`
+  }
+})
+
+console.log(authResponse.status)
+const responseText = await authResponse.text()
+console.log(responseText)

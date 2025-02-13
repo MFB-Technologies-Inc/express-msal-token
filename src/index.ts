@@ -4,6 +4,7 @@ import { Audience, MiddlewareWithRequest, RequestLike } from "./types.js"
 import { buildGetVerificationKey } from "./buildGetVerificationKey.js"
 
 export type { MsalAuth, WithMsalAuth } from "./RequestWithMsalAuth.js"
+export { audienceUtils } from "./audience-utils.js"
 
 export async function buildExpressMsalToken(args: {
   tenantIdOrDomain: string
